@@ -1,10 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.db.models import Count
 
 from .models import (
-    User, Tag, Ingredient, Recipe, RecipeIngredient,
-    Favorite, ShoppingCart
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+    User,
 )
 
 

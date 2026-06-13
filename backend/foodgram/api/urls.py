@@ -1,11 +1,16 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from rest_framework.authtoken.views import ObtainAuthToken
+from django.urls import include, path
 from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
+from rest_framework.routers import DefaultRouter
+
 from recipes.models import User
+
 from .views import (
-    UserViewSet, TagViewSet, IngredientViewSet, RecipeViewSet
+    IngredientViewSet,
+    RecipeViewSet,
+    TagViewSet,
+    UserViewSet,
 )
 
 
@@ -15,7 +20,9 @@ class CustomAuthToken(ObtainAuthToken):
         password = request.data.get('password')
 
         if not email or not password:
-            return Response({'error': 'Email и пароль обязательны'}, status=400)
+            return Response(
+                {'error': 'Email и пароль обязательны'}, status=400
+            )
 
         try:
             user = User.objects.get(email=email)
@@ -37,13 +44,15 @@ router.register(r'recipes', RecipeViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    
-    # Авторизация
     path('auth/token/login/', CustomAuthToken.as_view()),
-    path('auth/token/logout/', CustomAuthToken.as_view()),  # можно улучшить позже
-    
-    # Дополнительные эндпоинты
-    path('users/subscriptions/', UserViewSet.as_view({'get': 'subscriptions'})),
-    path('users/<int:pk>/subscribe/', UserViewSet.as_view({'post': 'subscribe', 'delete': 'subscribe'})),
-    path('users/me/avatar/', UserViewSet.as_view({'put': 'avatar', 'delete': 'avatar'})),
+    path('auth/token/logout/', CustomAuthToken.as_view()),
+    path('users/subscriptions/', UserViewSet.as_view(
+        {'get': 'subscriptions'}
+    )),
+    path('users/<int:pk>/subscribe/', UserViewSet.as_view(
+        {'post': 'subscribe', 'delete': 'subscribe'}
+    )),
+    path('users/me/avatar/', UserViewSet.as_view(
+        {'put': 'avatar', 'delete': 'avatar'}
+    )),
 ]

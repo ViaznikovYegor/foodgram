@@ -1,6 +1,6 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
+from django.db import models
 
 
 class User(AbstractUser):
@@ -8,7 +8,9 @@ class User(AbstractUser):
     email = models.EmailField(max_length=254, unique=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
-    avatar = models.ImageField(upload_to='users/avatars/', blank=True, null=True)
+    avatar = models.ImageField(
+        upload_to='users/avatars/', blank=True, null=True
+    )
 
     following = models.ManyToManyField(
         'self', symmetrical=False, related_name='followers', blank=True
@@ -38,14 +40,20 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipes')
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='recipes'
+    )
     name = models.CharField(max_length=256)
     image = models.ImageField(upload_to='recipes/images/')
     text = models.TextField()
-    cooking_time = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    cooking_time = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)]
+    )
 
     tags = models.ManyToManyField(Tag)
-    ingredients = models.ManyToManyField(Ingredient, through='RecipeIngredient')
+    ingredients = models.ManyToManyField(
+        Ingredient, through='RecipeIngredient'
+    )
 
     class Meta:
         verbose_name = 'Рецепт'
