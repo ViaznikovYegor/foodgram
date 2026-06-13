@@ -1,0 +1,970 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/auth/token/login/:
+    post:
+      operationId: auth_token_login_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: ''
+  /api/auth/token/logout/:
+    post:
+      operationId: auth_token_logout_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: ''
+  /api/ingredients/:
+    get:
+      operationId: ingredients_list
+      tags:
+      - ingredients
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+          description: ''
+  /api/ingredients/{id}/:
+    get:
+      operationId: ingredients_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Ингредиент.
+        required: true
+      tags:
+      - ingredients
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+          description: ''
+  /api/recipes/:
+    get:
+      operationId: recipes_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecipeListList'
+          description: ''
+    post:
+      operationId: recipes_create
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeCreate'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCreate'
+          description: ''
+  /api/recipes/{id}/:
+    get:
+      operationId: recipes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Рецепт.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeList'
+          description: ''
+    put:
+      operationId: recipes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Рецепт.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeCreate'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCreate'
+          description: ''
+    patch:
+      operationId: recipes_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Рецепт.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeCreate'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCreate'
+          description: ''
+    delete:
+      operationId: recipes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Рецепт.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/recipes/{id}/favorite/:
+    post:
+      operationId: recipes_favorite_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Рецепт.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeList'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeList'
+          description: ''
+    delete:
+      operationId: recipes_favorite_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Рецепт.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/recipes/{id}/shopping_cart/:
+    post:
+      operationId: recipes_shopping_cart_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Рецепт.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeList'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeList'
+          description: ''
+    delete:
+      operationId: recipes_shopping_cart_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Рецепт.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/recipes/download_shopping_cart/:
+    get:
+      operationId: recipes_download_shopping_cart_retrieve
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeList'
+          description: ''
+  /api/tags/:
+    get:
+      operationId: tags_list
+      tags:
+      - tags
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+          description: ''
+  /api/tags/{id}/:
+    get:
+      operationId: tags_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Тег.
+        required: true
+      tags:
+      - tags
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+  /api/users/:
+    get:
+      operationId: users_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+    post:
+      operationId: users_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreate'
+          description: ''
+  /api/users/{id}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Пользователь.
+        required: true
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: users_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Пользователь.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: users_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Пользователь.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: users_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Пользователь.
+        required: true
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/{id}/subscribe/:
+    post:
+      operationId: users_subscribe_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Пользователь.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: users_subscribe_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Пользователь.
+        required: true
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/me/:
+    get:
+      operationId: users_me_retrieve
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/users/me/avatar/:
+    put:
+      operationId: users_me_avatar_update
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: users_me_avatar_destroy
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/users/subscriptions/:
+    get:
+      operationId: users_subscriptions_retrieve
+      tags:
+      - users
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+components:
+  schemas:
+    AuthToken:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        token:
+          type: string
+          readOnly: true
+      required:
+      - password
+      - token
+      - username
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 128
+        measurement_unit:
+          type: string
+          maxLength: 64
+      required:
+      - id
+      - measurement_unit
+      - name
+    IngredientInRecipe:
+      type: object
+      properties:
+        id:
+          type: integer
+        amount:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+      required:
+      - amount
+      - id
+    PaginatedRecipeListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeList'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PatchedRecipeCreate:
+      type: object
+      properties:
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientInRecipe'
+        tags:
+          type: array
+          items:
+            type: integer
+        image:
+          type: string
+          format: uri
+        name:
+          type: string
+          maxLength: 256
+        text:
+          type: string
+        cooking_time:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+    PatchedUser:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        is_subscribed:
+          type: string
+          readOnly: true
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+    RecipeCreate:
+      type: object
+      properties:
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientInRecipe'
+        tags:
+          type: array
+          items:
+            type: integer
+        image:
+          type: string
+          format: uri
+        name:
+          type: string
+          maxLength: 256
+        text:
+          type: string
+        cooking_time:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+      required:
+      - cooking_time
+      - image
+      - ingredients
+      - name
+      - tags
+      - text
+    RecipeList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        ingredients:
+          type: string
+          readOnly: true
+        is_favorited:
+          type: string
+          readOnly: true
+        is_in_shopping_cart:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 256
+        image:
+          type: string
+          format: uri
+        text:
+          type: string
+        cooking_time:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+      required:
+      - author
+      - cooking_time
+      - id
+      - image
+      - ingredients
+      - is_favorited
+      - is_in_shopping_cart
+      - name
+      - tags
+      - text
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 32
+        slug:
+          type: string
+          maxLength: 32
+          pattern: ^[-a-zA-Z0-9_]+$
+      required:
+      - id
+      - name
+      - slug
+    User:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        is_subscribed:
+          type: string
+          readOnly: true
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - email
+      - first_name
+      - id
+      - is_subscribed
+      - last_name
+      - username
+    UserCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        username:
+          type: string
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - first_name
+      - last_name
+      - password
+      - username
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
