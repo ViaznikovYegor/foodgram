@@ -3,6 +3,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
+from rest_framework import status
 
 from recipes.models import User
 
@@ -12,6 +13,12 @@ from .views import (
     TagViewSet,
     UserViewSet,
 )
+
+
+class LogoutView(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        Token.objects.filter(user=request.user).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CustomAuthToken(ObtainAuthToken):
@@ -45,7 +52,7 @@ router.register(r'recipes', RecipeViewSet, basename='recipe')
 urlpatterns = [
     path('', include(router.urls)),
     path('auth/token/login/', CustomAuthToken.as_view()),
-    path('auth/token/logout/', CustomAuthToken.as_view()),
+    path('auth/token/logout/', LogoutView.as_view()),
     path('users/subscriptions/', UserViewSet.as_view(
         {'get': 'subscriptions'}
     )),
