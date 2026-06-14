@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -20,6 +23,7 @@ from .serializers import (
     IngredientSerializer,
     RecipeCreateSerializer,
     RecipeListSerializer,
+    SetPasswordSerializer,
     TagSerializer,
     UserCreateSerializer,
     UserSerializer,
@@ -96,14 +100,38 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def subscriptions(self, request):
-        queryset = request.user.following.all()
+        queryset = request.user.following.all().order_by('id')
         page = self.paginate_queryset(queryset)
+
+        recipes_limit = request.query_params.get('recipes_limit', 3)
+        try:
+            recipes_limit = int(recipes_limit)
+        except (TypeError, ValueError):
+            recipes_limit = 3
+
         serializer = UserSerializer(
             page,
             many=True,
-            context={'request': request}
+            context={'request': request, 'recipes_limit': recipes_limit}
         )
         return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=False,
+        methods=['post'],
+        permission_classes=[IsAuthenticated]
+    )
+    def set_password(self, request):
+        serializer = SetPasswordSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(
@@ -125,7 +153,6 @@ class IngredientViewSet(
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = CustomPagination
 
@@ -133,6 +160,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action in ('create', 'update', 'partial_update'):
             return RecipeCreateSerializer
         return RecipeListSerializer
+
+    def get_queryset(self):
+        queryset = Recipe.objects.all().select_related(
+            'author'
+        ).prefetch_related(
+            'tags', 'recipeingredient_set__ingredient'
+        )
+        author = self.request.query_params.get('author')
+
+        if author:
+            queryset = queryset.filter(author_id=author)
+        tags = self.request.query_params.getlist('tags')
+
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+        is_favorited = self.request.query_params.get('is_favorited')
+
+        if is_favorited == '1' and self.request.user.is_authenticated:
+            queryset = queryset.filter(favorite__user=self.request.user)
+
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart'
+        )
+
+        if is_in_shopping_cart == '1' and self.request.user.is_authenticated:
+            queryset = queryset.filter(shoppingcart__user=self.request.user)
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -177,8 +232,43 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        recipes = Recipe.objects.filter(shoppingcart__user=request.user)
-        serializer = RecipeListSerializer(
-            recipes, many=True, context={'request': request}
+        recipes = Recipe.objects.filter(
+            shoppingcart__user=request.user
+        ).prefetch_related(
+            'recipeingredient_set__ingredient'
         )
-        return Response(serializer.data)
+        ingredients = defaultdict(int)
+
+        for recipe in recipes:
+            for ri in recipe.recipeingredient_set.all():
+                key = (ri.ingredient.name, ri.ingredient.measurement_unit)
+                ingredients[key] += ri.amount
+
+        lines = []
+        for (name, unit), amount in sorted(ingredients.items()):
+            lines.append(f"• {name} ({unit}) — {amount}")
+
+        content = "\n".join(lines)
+
+        response = HttpResponse(
+            content, content_type='text/plain; charset=utf-8'
+        )
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename="shopping_list.txt"'
+        return response
+
+    @action(
+        detail=True,
+        methods=['get'],
+        permission_classes=[IsAuthenticatedOrReadOnly],
+        url_path='get-link'
+    )
+    def get_link(self, request, pk=None):
+        recipe = self.get_object()
+
+        short_link = request.build_absolute_uri(f'/recipes/{recipe.id}')
+
+        return Response({
+            'short-link': short_link
+        })
