@@ -104,7 +104,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/media'
 
-
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
