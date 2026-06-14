@@ -62,7 +62,7 @@ jobs:
           DEBUG: "True"
           ALLOWED_HOSTS: "localhost,127.0.0.1"
         run: |
-          cd backend/
+          cd backend/foodgram
           python manage.py test
 
 
