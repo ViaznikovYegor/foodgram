@@ -191,7 +191,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ]
 
     def _save_ingredients_and_tags(self, recipe, ingredients_data, tags_data):
-        recipe.recipeingredient_set.all().delete()
+        recipe.recipe_ingredients.all().delete()
+
         recipe_ingredients = [
             RecipeIngredient(
                 recipe=recipe,
@@ -216,6 +217,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
+
         instance = super().update(instance, validated_data)
         self._save_ingredients_and_tags(instance, ingredients_data, tags_data)
 
