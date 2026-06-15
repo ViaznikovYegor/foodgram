@@ -276,3 +276,15 @@ class SubscribeSerializer(serializers.ModelSerializer):
         author = self.instance
         Follow.objects.create(user=user, author=author)
         return author
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = []
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShoppingCart
+        fields = []

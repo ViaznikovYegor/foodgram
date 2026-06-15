@@ -156,7 +156,7 @@ class UserRecipeRelation(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Пользователь'
+        verbose_name='Пользователь',
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -167,6 +167,7 @@ class UserRecipeRelation(models.Model):
     class Meta:
         abstract = True
         unique_together = ('user', 'recipe')
+        default_related_name = '%(class)s'
 
 
 class Favorite(UserRecipeRelation):
@@ -191,11 +192,13 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        verbose_name='Пользователь',
         related_name='follower'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        verbose_name='Автор',
         related_name='following'
     )
 

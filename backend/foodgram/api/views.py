@@ -32,6 +32,9 @@ from .serializers import (
     TagSerializer,
     UserCreateSerializer,
     UserSerializer,
+    FavoriteSerializer,
+    ShoppingCartSerializer
+
 )
 
 
@@ -100,7 +103,16 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_201_CREATED,
             )
 
-        Follow.objects.filter(user=request.user, author=author).delete()
+        deleted_count, _ = Follow.objects.filter(
+            user=request.user, author=author
+        ).delete()
+
+        if deleted_count == 0:
+            return Response(
+                {'detail': 'Вы не были подписаны на этого пользователя'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -184,7 +196,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             Recipe.objects.all()
             .select_related('author')
             .prefetch_related('tags', 'recipe_ingredients__ingredient')
-            .order_by('-id')
         )
 
     def perform_create(self, serializer):
@@ -199,7 +210,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'POST':
+            serializer = FavoriteSerializer(
+                data={}, context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
             Favorite.objects.get_or_create(user=request.user, recipe=recipe)
+
             return Response(
                 RecipeListSerializer(
                     recipe, context={'request': request}
@@ -228,9 +244,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'POST':
+            serializer = ShoppingCartSerializer(
+                data={}, context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
             ShoppingCart.objects.get_or_create(
                 user=request.user, recipe=recipe
             )
+
             return Response(
                 RecipeListSerializer(
                     recipe, context={'request': request}
