@@ -13,8 +13,6 @@ ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split('
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
 
 INSTALLED_APPS = [
-    'recipes.apps.RecipesConfig',
-
     'django.contrib.contenttypes',
     'django.contrib.auth',
 
@@ -22,10 +20,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
 
     'rest_framework',
     'rest_framework.authtoken',
     'api.apps.ApiConfig',
+    'recipes.apps.RecipesConfig',
     'drf_spectacular',
 ]
 
@@ -121,3 +121,5 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+RECIPES_LIMIT = 3

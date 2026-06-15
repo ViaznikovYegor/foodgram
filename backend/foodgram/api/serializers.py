@@ -1,6 +1,7 @@
 import base64
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -16,6 +17,7 @@ from recipes.models import (
     ShoppingCart,
     Tag,
     User,
+    Follow
 )
 
 
@@ -28,7 +30,6 @@ class CustomTokenCreateSerializer(TokenCreateSerializer):
         password = attrs.get('password')
 
         if email and password:
-            User = self.context['request'].user.__class__
             user = User.objects.filter(email=email).first()
 
             if user and user.check_password(password):
@@ -80,11 +81,14 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return request.user.following.filter(id=obj.id).exists()
+            return Follow.objects.filter(user=request.user, author=obj).exists()
         return False
 
     def get_recipes(self, obj):
-        recipes_limit = self.context.get('recipes_limit', 3)
+        recipes_limit = self.context.get(
+            'recipes_limit',
+            settings.RECIPES_LIMIT
+        )
         recipes = obj.recipes.all()[:recipes_limit]
         return RecipeMinifiedSerializer(recipes, many=True).data
 
@@ -117,6 +121,16 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         fields = ['id', 'amount']
 
 
+class RecipeIngredientReadSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ['id', 'name', 'measurement_unit', 'amount']
+
+
 class RecipeListSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
@@ -132,14 +146,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
         ]
 
     def get_ingredients(self, obj):
-        return [
-            {
-                'id': ri.ingredient.id,
-                'name': ri.ingredient.name,
-                'measurement_unit': ri.ingredient.measurement_unit,
-                'amount': ri.amount
-            } for ri in obj.recipeingredient_set.all()
-        ]
+        recipe_ingredients = obj.recipe_ingredients.all()
+        return RecipeIngredientReadSerializer(recipe_ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
@@ -176,21 +184,36 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'cooking_time'
         ]
 
+    def _save_ingredients_and_tags(self, recipe, ingredients_data, tags_data):
+        recipe.recipeingredient_set.all().delete()
+        recipe_ingredients = [
+            RecipeIngredient(
+                recipe=recipe,
+                ingredient=ingredient['id'],
+                amount=ingredient['amount']
+            )
+            for ingredient in ingredients_data
+        ]
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
+
+        recipe.tags.set(tags_data)
+
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
 
         recipe = Recipe.objects.create(**validated_data)
+        self._save_ingredients_and_tags(recipe, ingredients_data, tags_data)
 
-        for ingredient_data in ingredients_data:
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient_data['id'],
-                amount=ingredient_data['amount']
-            )
-
-        recipe.tags.set(tags_data)
         return recipe
+
+    def update(self, instance, validated_data):
+        ingredients_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')
+        instance = super().update(instance, validated_data)
+        self._save_ingredients_and_tags(instance, ingredients_data, tags_data)
+
+        return instance
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -217,3 +240,31 @@ class SetPasswordSerializer(serializers.Serializer):
         except DjangoValidationError as error:
             raise serializers.ValidationError(list(error.messages))
         return value
+
+
+class SubscribeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = []
+
+    def validate(self, attrs):
+        author = self.instance
+        user = self.context['request'].user
+
+        if author == user:
+            raise serializers.ValidationError(
+                {'detail': 'Нельзя подписаться на себя'}
+            )
+
+        if Follow.objects.filter(user=user, author=author).exists():
+            raise serializers.ValidationError(
+                {'detail': 'Вы уже подписаны на этого пользователя'}
+            )
+
+        return attrs
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        author = self.instance
+        Follow.objects.create(user=user, author=author)
+        return author
