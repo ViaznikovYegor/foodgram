@@ -106,7 +106,9 @@ class Recipe(models.Model):
         validators=[MinValueValidator(1)],
         verbose_name='Время приготовления (мин)'
     )
-    tags = models.ManyToManyField(Tag, related_name='recipes', verbose_name='Теги')
+    tags = models.ManyToManyField(
+        Tag, related_name='recipes', verbose_name='Теги'
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         through='RecipeIngredient',
@@ -151,7 +153,6 @@ class RecipeIngredient(models.Model):
 
 
 class UserRecipeRelation(models.Model):
-    """Абстрактная модель для связей Пользователь-Рецепт (Избранное и Корзина)"""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

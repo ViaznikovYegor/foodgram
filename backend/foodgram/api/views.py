@@ -201,7 +201,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             Favorite.objects.get_or_create(user=request.user, recipe=recipe)
             return Response(
-                RecipeListSerializer(recipe, context={'request': request}).data,
+                RecipeListSerializer(
+                    recipe, context={'request': request}
+                ).data,
                 status=status.HTTP_201_CREATED,
             )
 
@@ -226,9 +228,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == 'POST':
-            ShoppingCart.objects.get_or_create(user=request.user, recipe=recipe)
+            ShoppingCart.objects.get_or_create(
+                user=request.user, recipe=recipe
+            )
             return Response(
-                RecipeListSerializer(recipe, context={'request': request}).data,
+                RecipeListSerializer(
+                    recipe, context={'request': request}
+                ).data,
                 status=status.HTTP_201_CREATED,
             )
 
@@ -250,7 +256,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        ingredients_qs = (
+        ingredients_queryset = (
             RecipeIngredient.objects
             .filter(recipe__shoppingcart__user=request.user)
             .values(
@@ -262,12 +268,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
         lines = [
-            f"• {item['ingredient__name']} ({item['ingredient__measurement_unit']}) — {item['total_amount']}"
-            for item in ingredients_qs
+            f"• {item['ingredient__name']} "
+            f"({item['ingredient__measurement_unit']}) — "
+            f"{item['total_amount']}"
+            for item in ingredients_queryset
         ]
 
         content = '\n'.join(lines)
 
-        response = HttpResponse(content, content_type='text/plain; charset=utf-8')
-        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+        response = HttpResponse(
+            content, content_type='text/plain; charset=utf-8'
+        )
+        response[
+            'Content-Disposition'
+        ] = 'attachment; filename="shopping_list.txt"'
         return response
