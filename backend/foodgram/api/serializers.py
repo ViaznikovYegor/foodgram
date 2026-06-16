@@ -283,8 +283,24 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = Favorite
         fields = []
 
+    def create(self, validated_data):
+        user = self.context['request'].user
+        recipe = self.context.get('recipe')
+        favorite, created = Favorite.objects.get_or_create(
+            user=user, recipe=recipe
+        )
+        return favorite
+
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
         fields = []
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        recipe = self.context.get('recipe')
+        cart, created = ShoppingCart.objects.get_or_create(
+            user=user, recipe=recipe
+        )
+        return cart

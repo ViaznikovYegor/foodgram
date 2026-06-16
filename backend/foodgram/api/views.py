@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters as drf_filters, mixins, status, viewsets
 from rest_framework.decorators import action
@@ -13,28 +14,28 @@ from rest_framework.response import Response
 
 from recipes.models import (
     Favorite,
+    Follow,
     Ingredient,
     Recipe,
     RecipeIngredient,
     ShoppingCart,
     Tag,
     User,
-    Follow
 )
+
 from .filters import RecipeFilter
 from .serializers import (
     AvatarSerializer,
+    FavoriteSerializer,
     IngredientSerializer,
     RecipeCreateSerializer,
     RecipeListSerializer,
     SetPasswordSerializer,
+    ShoppingCartSerializer,
     SubscribeSerializer,
     TagSerializer,
     UserCreateSerializer,
     UserSerializer,
-    FavoriteSerializer,
-    ShoppingCartSerializer
-
 )
 
 
@@ -211,10 +212,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             serializer = FavoriteSerializer(
-                data={}, context={'request': request}
+                data={},
+                context={'request': request, 'recipe': recipe}
             )
             serializer.is_valid(raise_exception=True)
-            Favorite.objects.get_or_create(user=request.user, recipe=recipe)
+            serializer.save()
 
             return Response(
                 RecipeListSerializer(
@@ -245,12 +247,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'POST':
             serializer = ShoppingCartSerializer(
-                data={}, context={'request': request}
+                data={},
+                context={'request': request, 'recipe': recipe}
             )
             serializer.is_valid(raise_exception=True)
-            ShoppingCart.objects.get_or_create(
-                user=request.user, recipe=recipe
-            )
+            serializer.save()
 
             return Response(
                 RecipeListSerializer(
