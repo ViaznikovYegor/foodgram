@@ -34,7 +34,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - static:/static/static
+      - static:/backend_static
       - media:/media
   frontend:
     env_file: .env
