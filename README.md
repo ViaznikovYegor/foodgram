@@ -26,3 +26,7 @@
 - Docker Compose
 - Nginx
 
+ip: 81.26.181.68
+домен: kittygramm.ru
+email: dexbustakkaunt1@gmail.com
+password: wawawa
