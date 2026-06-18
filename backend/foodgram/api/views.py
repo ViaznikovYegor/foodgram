@@ -174,6 +174,7 @@ class IngredientViewSet(
     serializer_class = IngredientSerializer
     filter_backends = [drf_filters.SearchFilter]
     search_fields = ['name']
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
