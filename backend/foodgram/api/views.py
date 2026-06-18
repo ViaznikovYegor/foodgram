@@ -172,6 +172,8 @@ class IngredientViewSet(
 ):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = [drf_filters.SearchFilter]
+    search_fields = ['name']
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
