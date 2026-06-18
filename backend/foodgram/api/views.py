@@ -210,6 +210,27 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    def _generate_shopping_list(self, user):
+        ingredients_queryset = (
+            RecipeIngredient.objects
+            .filter(recipe__shoppingcart__user=user)
+            .values(
+                'ingredient__name',
+                'ingredient__measurement_unit'
+            )
+            .annotate(total_amount=Sum('amount'))
+            .order_by('ingredient__name')
+        )
+
+        lines = [
+            f"• {item['ingredient__name']} "
+            f"({item['ingredient__measurement_unit']}) — "
+            f"{item['total_amount']}"
+            for item in ingredients_queryset
+        ]
+
+        return '\n'.join(lines)
+
     @action(
         detail=True,
         methods=['post', 'delete'],
@@ -286,25 +307,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
-        ingredients_queryset = (
-            RecipeIngredient.objects
-            .filter(recipe__shoppingcart__user=request.user)
-            .values(
-                'ingredient__name',
-                'ingredient__measurement_unit'
-            )
-            .annotate(total_amount=Sum('amount'))
-            .order_by('ingredient__name')
-        )
-
-        lines = [
-            f"• {item['ingredient__name']} "
-            f"({item['ingredient__measurement_unit']}) — "
-            f"{item['total_amount']}"
-            for item in ingredients_queryset
-        ]
-
-        content = '\n'.join(lines)
+        content = self._generate_shopping_list(request.user)
 
         response = HttpResponse(
             content, content_type='text/plain; charset=utf-8'
