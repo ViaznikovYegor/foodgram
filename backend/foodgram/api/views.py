@@ -122,11 +122,17 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated]
     )
     def subscriptions(self, request):
-        queryset = request.user.following.all()
+        followed_authors_ids = Follow.objects.filter(
+            user=request.user
+        ).values_list('author_id', flat=True)
+
+        queryset = User.objects.filter(
+            id__in=followed_authors_ids
+        ).order_by('id')
+
         page = self.paginate_queryset(queryset)
 
         recipes_limit = request.query_params.get('recipes_limit')
-
         if isinstance(recipes_limit, str) and recipes_limit.isdigit():
             recipes_limit = int(recipes_limit)
         else:
