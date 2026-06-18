@@ -149,7 +149,6 @@ class UserViewSet(viewsets.ModelViewSet):
             data=request.data, context={'request': request}
         )
         serializer.is_valid(raise_exception=True)
-
         request.user.set_password(serializer.validated_data['new_password'])
         request.user.save()
 
