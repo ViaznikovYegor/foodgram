@@ -23,7 +23,7 @@ from recipes.models import (
     User,
 )
 
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from .serializers import (
     AvatarSerializer,
     FavoriteSerializer,
@@ -177,8 +177,8 @@ class IngredientViewSet(
 ):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = [drf_filters.SearchFilter]
-    search_fields = ['name']
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter
     pagination_class = None
 
 
