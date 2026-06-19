@@ -24,6 +24,7 @@ services:
   backend:
     env_file: .env
     image: sauld/foodgram_backend
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
