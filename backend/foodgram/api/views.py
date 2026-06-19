@@ -128,7 +128,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         queryset = User.objects.filter(
             id__in=followed_authors_ids
-        ).order_by('id')
+        )
 
         page = self.paginate_queryset(queryset)
 
